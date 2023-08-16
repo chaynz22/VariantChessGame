@@ -41,7 +41,7 @@ class ChessVar:
     def __init__(self):
         self._board = set_up_board()
         self._game_state = 'UNFINISHED'
-        self._turn = "WHITE"
+        self._turn = "w"
 
     def get_board(self):
         """Get method for the board, returns the board in its latest state"""
@@ -54,11 +54,11 @@ class ChessVar:
 
     def set_turn(self):
         """Sets whose turn it is based on who just went"""
-        if self._turn == "WHITE":
-            self._turn = "BLACK"
+        if self._turn == "w":
+            self._turn = "b"
             return self._turn
-        if self._turn == "BLACK":
-            self._turn = "WHITE"
+        if self._turn == "b":
+            self._turn = "w"
             return self._turn
 
     def get_game_state(self):
@@ -83,6 +83,7 @@ class ChessVar:
     def is_legal_move(self, loc1, loc2):
         """Checks if the desired move is legal and returns a boolean to the "make_move" method
         Utilizes the is_in_check method to check if either king will be in check after the move"""
+        turn = self.get_turn()
 
         p1 = self.look_up_piece_by_location(loc1)  # gets the pieces at both locs
         p2 = self.look_up_piece_by_location(loc2)
@@ -124,6 +125,8 @@ class ChessVar:
             check that next move is in the same row or column for rook"""
 
         if p1 == 0:  # if there is no piece at starting loc
+            return False
+        if p1[0] != turn:
             return False
         if p2 != 0:  # check if the destination is not empty
             if p2[0] == p1[0]:  # checks if the piece in the way is the same color
@@ -197,12 +200,11 @@ def main():
     # game.make_move('g1', 'f1')
     # state = game.get_game_state()
 
-    print("move rook")
-    game.make_move('h2', 'h3')
-    print("move king behind rook")
+    game.make_move('a2', 'a5')
+
+    game.make_move('h2', 'h4')
+
     game.make_move('h1', 'h2')
-    print("try to move rook past king")
-    game.make_move('h3', 'h1')
 
     print(game.get_game_state())
     game.print_board()
