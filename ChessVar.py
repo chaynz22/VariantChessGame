@@ -3,10 +3,6 @@
 # Date: 3 Aug 2023
 # Description: A game that is a variant of Chess
 
-class IllegalMove(Exception):
-    """Exception class to be raised if user tries an illegal move"""
-    pass
-
 
 def set_up_board():
     """Method to set up the board at the beginning of the game
@@ -105,12 +101,19 @@ class ChessVar:
         def rook_legal_moves():
             """An internal method for the "is_legal_move method to
             check that next move is in the same row or column for rook"""
+            board = self.get_board()
             if l2[0] - l1[0] == 0:
-                return True
+                for n in range(l2[1], l1[1]):
+                    if board[l1[0]][n] != 0:
+                        return False
             if l2[1] - l1[1] == 0:
-                return True
-            else:
+                for n in range(l2[0], l1[0]):
+                    if board[n][l2[1]] != 0:
+                        return False
+            if l2[0] - l1[0] > 0 and l2[1] - l1[1] > 0:
                 return False
+            else:
+                return True
 
         def bishop_legal_moves():
             """An internal method for the "is_legal_move method to
@@ -130,20 +133,24 @@ class ChessVar:
             if p1[1] == 'k':
                 return king_legal_moves()
             if p1[1] == 'r':
-                rook_legal_moves()
+                return rook_legal_moves()
+            if p1[1] == 'b':
+                bishop_legal_moves()
+            if p1[1] == 'n':
+                knight_legal_moves()
+
         if p2 == 0:
             if p1[1] == 'k':
                 return king_legal_moves()
 
             if p1[1] == 'r':
-                rook_legal_moves()
+                return rook_legal_moves()
 
-            # # Bishop legal moves
-            # if p1[1] == 'b' or (p1[1] == 'b' and p1[2] == '2'):
-            #
-            #
-            # # Knight legal moves
-            # if p1[1] == 'n' or (p1[1] == 'n' and p1[2] == '2'):
+            if p1[1] == 'b':
+                bishop_legal_moves()
+
+            if p1[1] == 'n':
+                knight_legal_moves()
 
     def make_move(self, curr_loc, next_loc):
         """This method takes as parameters where the piece is now and where the user wants to move them next
@@ -155,7 +162,7 @@ class ChessVar:
         At the end, update "turn" parameter"""
         legal = self.is_legal_move(curr_loc, next_loc)
         if legal is False:
-            raise IllegalMove(Exception)
+            return False
         if self._game_state == "WHITE_WON" or self._game_state == "BLACK_WON":
             return False
         else:
@@ -191,14 +198,11 @@ def main():
     # state = game.get_game_state()
 
     print("move rook")
-    try:
-        game.make_move('h2', 'h6')
-        print("move king")
-        game.make_move('h1', 'h5')
-        print("move king again")
-        game.make_move('h5', 'h4')
-    except IllegalMove:
-        print("Move is illegal")
+    game.make_move('h2', 'h3')
+    print("move king behind rook")
+    game.make_move('h1', 'h2')
+    print("try to move rook past king")
+    game.make_move('h3', 'h1')
 
     print(game.get_game_state())
     game.print_board()
