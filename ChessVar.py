@@ -61,6 +61,18 @@ class ChessVar:
             self._turn = "w"
             return self._turn
 
+    def update_game_state(self):
+        """Method to update the game state based on game rules"""
+        board = self.get_board()
+        if 'bk' in board[7]:
+            self._game_state = "BLACK_WON"
+        if 'wk' in board[7] and 'bk' in board[6]:  # if white king is at row 8 and black king is one step behind
+            self._game_state = "TIE"
+        if 'wk' in board[7] and 'bk' not in board[6]:
+            self._game_state = "WHITE_WON"
+        else:
+            self._game_state = "UNFINISHED"
+
     def get_game_state(self):
         """Get method for the game state which is updated in the "make move" method"""
         return self._game_state
@@ -120,9 +132,11 @@ class ChessVar:
             """An internal method for the "is_legal_move method to
             check that next move is only in diagonals for bishops"""
 
+
         def knight_legal_moves():
             """An internal method for the "is_legal_move method to
-            check that next move is in the same row or column for rook"""
+            check that next move is in "L" shape for knight, also
+            the knight is the only piece that can jump other pieces"""
 
         if p1 == 0:  # if there is no piece at starting loc
             return False
@@ -176,22 +190,15 @@ class ChessVar:
             board[now[0]][now[1]] = 0
             board[later[0]][later[1]] = piece
             self.set_turn()  # update turn
+            self.update_game_state()
+            return True
+            # return True ****Uncomment before turn in****
 
-            # update game state
-            if piece == 'bk' and later[0] == 7:
-                self._game_state = "BLACK_WON"
-            if piece == 'wk' and 'bk' in board[6]:  # if white king is at row 8 and black king is one step behind
-                self._game_state = "TIE"
-            if piece == 'wk' and later[0] == 7 and 'bk' not in board[6]:
-                self._game_state = "WHITE_WON"
-            else:
-                self._game_state = "UNFINISHED"
-
-    def print_board(self):
-        for n in range(0, 8):
-            board = self.get_board()
-            row = board[n]
-            print(row)
+    # def print_board(self):
+    #     for n in range(0, 8):
+    #         board = self.get_board()
+    #         row = board[n]
+    #         print(row)
 
 
 def main():
