@@ -116,11 +116,11 @@ class ChessVar:
             check that next move is in the same row or column for rook"""
             board = self.get_board()
             if l2[0] - l1[0] == 0:
-                for n in range(l2[1], l1[1]):
+                for n in range(l1[1], l2[1] - 1):
                     if board[l1[0]][n] != 0:
                         return False
             if l2[1] - l1[1] == 0:
-                for n in range(l2[0], l1[0]):
+                for n in range(l1[0], l2[0] - 1):
                     if board[n][l2[1]] != 0:
                         return False
             if l2[0] - l1[0] > 0 and l2[1] - l1[1] > 0:
@@ -131,12 +131,30 @@ class ChessVar:
         def bishop_legal_moves():
             """An internal method for the "is_legal_move method to
             check that next move is only in diagonals for bishops"""
-
+            board = self.get_board()
+            if l2[0] - l1[0] == l2[1] - l1[1]:  # change in rise/run is same = diagonal
+                for n in range(l1[1], l2[1] - 1):
+                    if board[n][n] != 0:
+                        return False
+            if l2[0] - l1[0] != l2[1] - l1[1]:  # change in rise and run are not equal so not diagonal
+                return False
+            else:
+                return True
 
         def knight_legal_moves():
             """An internal method for the "is_legal_move method to
             check that next move is in "L" shape for knight, also
             the knight is the only piece that can jump other pieces"""
+            if abs(l2[0] - l1[0]) == 2 and abs(l2[1] - l1[1]) == 1:
+                return True
+            if abs(l2[0] - l1[0]) == 1 and abs(l2[1] - l1[1]) == 2:
+                return True
+            if abs(l1[0] - l2[0]) == 2 and abs(l1[1] - l2[1]) == 1:
+                return True
+            if abs(l1[0] - l2[0]) == 1 and abs(l1[1] - l2[1]) == 2:
+                return True
+            else:
+                return False
 
         if p1 == 0:  # if there is no piece at starting loc
             return False
@@ -152,22 +170,19 @@ class ChessVar:
             if p1[1] == 'r':
                 return rook_legal_moves()
             if p1[1] == 'b':
-                bishop_legal_moves()
+                return bishop_legal_moves()
             if p1[1] == 'n':
-                knight_legal_moves()
+                return knight_legal_moves()
 
         if p2 == 0:
             if p1[1] == 'k':
                 return king_legal_moves()
-
             if p1[1] == 'r':
                 return rook_legal_moves()
-
             if p1[1] == 'b':
-                bishop_legal_moves()
-
+                return bishop_legal_moves()
             if p1[1] == 'n':
-                knight_legal_moves()
+                return knight_legal_moves()
 
     def make_move(self, curr_loc, next_loc):
         """This method takes as parameters where the piece is now and where the user wants to move them next
@@ -180,7 +195,7 @@ class ChessVar:
         legal = self.is_legal_move(curr_loc, next_loc)
         if legal is False:
             return False
-        if self._game_state == "WHITE_WON" or self._game_state == "BLACK_WON":
+        if self._game_state == "WHITE_WON" or self._game_state == "BLACK_WON" or self._game_state == "TIE":
             return False
         else:
             piece = self.look_up_piece_by_location(curr_loc)
@@ -190,7 +205,7 @@ class ChessVar:
             board[now[0]][now[1]] = 0
             board[later[0]][later[1]] = piece
             self.set_turn()  # update turn
-            self.update_game_state()
+            self.update_game_state()  # update game state
             return True
             # return True ****Uncomment before turn in****
 
@@ -203,18 +218,18 @@ class ChessVar:
 
 def main():
     game = ChessVar()
-    # move_result = game.make_move('c2', 'e3')
-    # game.make_move('g1', 'f1')
-    # state = game.get_game_state()
-
-    game.make_move('a2', 'a5')
-
-    game.make_move('h2', 'h4')
-
-    game.make_move('h1', 'h2')
+    print("move white knight: legal")
+    move_result = game.make_move('c1', 'e2')
+    print(move_result)
+    print("move black knight 2")
+    game.make_move('f2', 'e4')
+    state = game.get_game_state()
+    print(state)
+    print("move white knight illegally")
+    game.make_move('e2', 'e3')
 
     print(game.get_game_state())
-    game.print_board()
+    # game.print_board()
 
 
 if __name__ == "__main__":
