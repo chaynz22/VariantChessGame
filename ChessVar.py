@@ -89,9 +89,31 @@ class ChessVar:
         piece = board[row_num - 1][col - 1]
         return piece
 
-    def in_check(self):
-        """Method to check if either king is in check after a move is made
-        Returns a boolean which will be used by "is_legal_move" method"""
+    def look_up_loc_from_piece(self, piece):
+        """Method to look up where the kings are by using the parameter 'wk' or 'bk'"""
+        board = self.get_board()
+        list_loc = []
+        for n in range(0, 8):
+            for k in range(0, 8):
+                if piece == board[n][k]:
+                    list_loc.append(n)
+                    list_loc.append(k)
+                    return list_loc
+
+    def convert_loc_to_algebraic(self, loc_list):
+        """Method to convert the list indices back to algebraic notation i.e. 'a3'
+        Takes as a parameter the list from "look_up_loc_by_piece" """
+        row = loc_list[1]
+        col = loc_list[0]
+
+        conversion = row + 1 + 96
+        letter = chr(conversion)
+        num = str(col + 1)
+
+        alg_loc = letter + num
+        return alg_loc
+
+
     def is_legal_move(self, loc1, loc2):
         """Checks if the desired move is legal and returns a boolean to the "make_move" method
         Utilizes the is_in_check method to check if either king will be in check after the move"""
@@ -116,14 +138,14 @@ class ChessVar:
             check that next move is in the same row or column for rook"""
             board = self.get_board()
             if l2[0] - l1[0] == 0:
-                for n in range(l1[1], l2[1] - 1):
+                for n in range(l1[1] + 1, l2[1]):
                     if board[l1[0]][n] != 0:
                         return False
             if l2[1] - l1[1] == 0:
-                for n in range(l1[0], l2[0] - 1):
-                    if board[n][l2[1]] != 0:
+                for n in range(l1[0] + 1, l2[0]):
+                    if board[n][l1[1]] != 0:
                         return False
-            if l2[0] - l1[0] > 0 and l2[1] - l1[1] > 0:
+            if l2[0] - l1[0] != 0 and l2[1] - l1[1] != 0:
                 return False
             else:
                 return True
@@ -132,11 +154,24 @@ class ChessVar:
             """An internal method for the "is_legal_move method to
             check that next move is only in diagonals for bishops"""
             board = self.get_board()
-            if l2[0] - l1[0] == l2[1] - l1[1]:  # change in rise/run is same = diagonal
-                for n in range(l1[1], l2[1] - 1):
-                    if board[n][n] != 0:
-                        return False
-            if l2[0] - l1[0] != l2[1] - l1[1]:  # change in rise and run are not equal so not diagonal
+            if abs(l2[0] - l1[0]) == abs(l2[1] - l1[1]):  # change in rise/run is same = diagonal
+                if l1[0] > l2[0]:
+                    high1 = l1[0]
+                    low1 = l2[0]
+                else:
+                    high1 = l2[0]
+                    low1 = l1[0]
+                if l1[1] > l2[1]:
+                    high2 = l1[1]
+                    low2 = l2[1]
+                else:
+                    high2 = l2[1]
+                    low2 = l1[1]
+                for k in range(low1 + 1, high1):
+                    for n in range(low2 + 1, high2):
+                        if board[k][n] != 0:
+                            return False
+            if abs(l2[0] - l1[0]) != abs(l2[1] - l1[1]):  # change in rise and run are not equal so not diagonal
                 return False
             else:
                 return True
@@ -184,6 +219,25 @@ class ChessVar:
             if p1[1] == 'n':
                 return knight_legal_moves()
 
+    # def white_king_in_check(self):
+    #     """Method to check if either king is in check after a move is made
+    #     Returns a boolean which will be used by "is_legal_move" method"""
+    #     king1_loc = self.look_up_loc_from_piece('wk')  # finds the white king
+    #     king1_alg_loc = self.convert_loc_to_algebraic(king1_loc)  # converts location to algebraic
+    #     board = self.get_board()
+    #     list_loc = []
+    #
+    #     for n in range(0, 8):
+    #         for k in range(0, 8):
+    #             if board[n][k] != 0:
+    #                 piece = board[n][k]
+    #                 if piece[0] == 'b':
+    #                     list_loc.append(n)
+    #                     list_loc.append(k)
+    #                     move = self.convert_loc_to_algebraic(list_loc)
+    #                     check_wk = self.is_legal_move(move, king1_alg_loc)
+    #                     return check_wk
+
     def make_move(self, curr_loc, next_loc):
         """This method takes as parameters where the piece is now and where the user wants to move them next
         If the next location is an illegal move (will put the other king in check or does not follow the
@@ -193,6 +247,7 @@ class ChessVar:
         If is_legal_move returns false, raise an error
         At the end, update "turn" parameter"""
         legal = self.is_legal_move(curr_loc, next_loc)
+
         if legal is False:
             return False
         if self._game_state == "WHITE_WON" or self._game_state == "BLACK_WON" or self._game_state == "TIE":
@@ -204,32 +259,47 @@ class ChessVar:
             board = self.get_board()
             board[now[0]][now[1]] = 0
             board[later[0]][later[1]] = piece
+            # check = self.white_king_in_check()
+            # if check is True:
+            #     board[later[0]][later[1]] = 0
+            #     board[now[0]][now[1]] = piece
+                # return False
+            # else:
             self.set_turn()  # update turn
             self.update_game_state()  # update game state
             return True
-            # return True ****Uncomment before turn in****
 
-    # def print_board(self):
-    #     for n in range(0, 8):
-    #         board = self.get_board()
-    #         row = board[n]
-    #         print(row)
+    def print_board(self):
+        for n in range(0, 8):
+            board = self.get_board()
+            row = board[n]
+            print(row)
 
 
 def main():
     game = ChessVar()
-    print("move white knight: legal")
-    move_result = game.make_move('c1', 'e2')
-    print(move_result)
-    print("move black knight 2")
-    game.make_move('f2', 'e4')
+    print("move white rook: legal")
+    moved = game.make_move('a2', 'a6')
+    print(moved)
+    print("move black rook")
+    result = game.make_move('h2', 'h4')
+    print(result)
     state = game.get_game_state()
     print(state)
-    print("move white knight illegally")
-    game.make_move('e2', 'e3')
-
+    print("move white king")
+    king = game.make_move('a1', 'a2')
+    print(king)
+    print("move black bishop")
+    bishop = game.make_move('g2', 'f3')
+    print(bishop)
+    print("move white king")
+    whtking = game.make_move('a1', 'a3')
+    print(whtking)
+    print("move black rook")
+    rookagain = game.make_move('h4', 'h3')
+    print(rookagain)
     print(game.get_game_state())
-    # game.print_board()
+    game.print_board()
 
 
 if __name__ == "__main__":
