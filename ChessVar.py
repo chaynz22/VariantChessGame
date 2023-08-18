@@ -103,12 +103,12 @@ class ChessVar:
     def convert_loc_to_algebraic(self, loc_list):
         """Method to convert the list indices back to algebraic notation i.e. 'a3'
         Takes as a parameter the list from "look_up_loc_by_piece" """
-        row = loc_list[1]
-        col = loc_list[0]
+        col = loc_list[1]
+        row = loc_list[0]
 
-        conversion = row + 1 + 96
+        conversion = col + 1 + 96
         letter = chr(conversion)
-        num = str(col + 1)
+        num = str(row + 1)
 
         alg_loc = letter + num
         return alg_loc
@@ -117,7 +117,7 @@ class ChessVar:
     def is_legal_move(self, loc1, loc2):
         """Checks if the desired move is legal and returns a boolean to the "make_move" method
         Utilizes the is_in_check method to check if either king will be in check after the move"""
-        turn = self.get_turn()
+        # turn = self.get_turn()
 
         p1 = self.look_up_piece_by_location(loc1)  # gets the pieces at both locs
         p2 = self.look_up_piece_by_location(loc2)
@@ -193,13 +193,11 @@ class ChessVar:
 
         if p1 == 0:  # if there is no piece at starting loc
             return False
-        if p1[0] != turn:
-            return False
         if p2 != 0:  # check if the destination is not empty
             if p2[0] == p1[0]:  # checks if the piece in the way is the same color
                 return False
-            if p2 == 'wk' or p2 == 'bk':  # cannot capture kings
-                return False
+            # if p2 == 'wk' or p2 == 'bk':  # cannot capture kings
+            #     return False
             if p1[1] == 'k':
                 return king_legal_moves()
             if p1[1] == 'r':
@@ -219,24 +217,27 @@ class ChessVar:
             if p1[1] == 'n':
                 return knight_legal_moves()
 
-    # def white_king_in_check(self):
-    #     """Method to check if either king is in check after a move is made
-    #     Returns a boolean which will be used by "is_legal_move" method"""
-    #     king1_loc = self.look_up_loc_from_piece('wk')  # finds the white king
-    #     king1_alg_loc = self.convert_loc_to_algebraic(king1_loc)  # converts location to algebraic
-    #     board = self.get_board()
-    #     list_loc = []
-    #
-    #     for n in range(0, 8):
-    #         for k in range(0, 8):
-    #             if board[n][k] != 0:
-    #                 piece = board[n][k]
-    #                 if piece[0] == 'b':
-    #                     list_loc.append(n)
-    #                     list_loc.append(k)
-    #                     move = self.convert_loc_to_algebraic(list_loc)
-    #                     check_wk = self.is_legal_move(move, king1_alg_loc)
-    #                     return check_wk
+    def white_king_in_check(self):
+        """Method to check if either king is in check after a move is made
+        Returns a boolean which will be used by "is_legal_move" method"""
+        king1_loc = self.look_up_loc_from_piece('wk')  # finds the white king
+        king1_alg_loc = self.convert_loc_to_algebraic(king1_loc)  # converts location to algebraic
+        board = self.get_board()
+        list_loc = []
+        # check = False
+
+        for n in range(0, 8):
+            for k in range(0, 8):
+                if board[n][k] != 0:
+                    piece = board[n][k]
+                    if piece[0] == 'b':
+                        list_loc.insert(0, n)
+                        list_loc.insert(1, k)
+                        move = self.convert_loc_to_algebraic(list_loc)
+                        if self.is_legal_move(move, king1_alg_loc):
+                            return True
+        # return check
+
 
     def make_move(self, curr_loc, next_loc):
         """This method takes as parameters where the piece is now and where the user wants to move them next
@@ -247,27 +248,30 @@ class ChessVar:
         If is_legal_move returns false, raise an error
         At the end, update "turn" parameter"""
         legal = self.is_legal_move(curr_loc, next_loc)
-
+        turn = self.get_turn()
         if legal is False:
             return False
         if self._game_state == "WHITE_WON" or self._game_state == "BLACK_WON" or self._game_state == "TIE":
             return False
         else:
             piece = self.look_up_piece_by_location(curr_loc)
-            now = convert_to_list_type_loc(curr_loc)
-            later = convert_to_list_type_loc(next_loc)
-            board = self.get_board()
-            board[now[0]][now[1]] = 0
-            board[later[0]][later[1]] = piece
-            # check = self.white_king_in_check()
-            # if check is True:
-            #     board[later[0]][later[1]] = 0
-            #     board[now[0]][now[1]] = piece
-                # return False
-            # else:
-            self.set_turn()  # update turn
-            self.update_game_state()  # update game state
-            return True
+            if piece[0] != turn:
+                return False
+            else:
+                now = convert_to_list_type_loc(curr_loc)
+                later = convert_to_list_type_loc(next_loc)
+                board = self.get_board()
+                board[now[0]][now[1]] = 0
+                board[later[0]][later[1]] = piece
+                check = self.white_king_in_check()
+                if check is True:
+                    board[later[0]][later[1]] = 0
+                    board[now[0]][now[1]] = piece
+                    return False
+                else:
+                    self.set_turn()  # update turn
+                    self.update_game_state()  # update game state
+                    return True
 
     def print_board(self):
         for n in range(0, 8):
@@ -290,10 +294,10 @@ def main():
     king = game.make_move('a1', 'a2')
     print(king)
     print("move black bishop")
-    bishop = game.make_move('g2', 'f3')
+    bishop = game.make_move('g2', 'c6')
     print(bishop)
     print("move white king")
-    whtking = game.make_move('a1', 'a3')
+    whtking = game.make_move('a2', 'a3')
     print(whtking)
     print("move black rook")
     rookagain = game.make_move('h4', 'h3')
